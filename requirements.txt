@@ -1,0 +1,6 @@
+todus-client>=3.5.0
+requests>=2.25
+aiohttp>=3.10.0
+blurhash>=1.1.4
+Pillow>=10.0.0
+numpy>=1.24.0

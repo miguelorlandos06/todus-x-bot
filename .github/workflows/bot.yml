@@ -1,0 +1,43 @@
+name: Todus X Bot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */4 * * *'
+concurrency:
+  group: todus-x-bot
+  cancel-in-progress: true
+jobs:
+  run-bot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 235
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install deps
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Write cookies.txt
+        env:
+          X_COOKIES: ${{ secrets.X_COOKIES }}
+        run: |
+          if [ -z "$X_COOKIES" ]; then echo "::error::Falta X_COOKIES"; exit 1; fi
+          printf '%s' "$X_COOKIES" > /tmp/cookies.txt
+          chmod 600 /tmp/cookies.txt
+          echo "cookies.txt: $(wc -l < /tmp/cookies.txt) lineas"
+      - name: Run bot
+        env:
+          TODUS_PHONE: ${{ secrets.TODUS_PHONE }}
+          X_COOKIES_PATH: /tmp/cookies.txt
+          TODUS_TMP: /tmp/todus_uploads
+          PORT: "10000"
+          WATCHDOG_LIFETIME: "13800"
+        run: python todus_x_bot.py
